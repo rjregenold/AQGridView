@@ -8,12 +8,12 @@
 xcodebuild               	\
 	-configuration Release 	\
 	-target "AQGridView"    \
-	-sdk iphoneos4.2
+	-sdk iphoneos4.3
 
 xcodebuild               	\
 	-configuration Release 	\
 	-target "AQGridView"    \
-	-sdk iphonesimulator4.2
+	-sdk iphonesimulator4.3
 
 # Define these to suit your nefarious purposes  
                      FRAMEWORK_NAME=AQGridView
