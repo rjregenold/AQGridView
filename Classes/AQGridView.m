@@ -1630,7 +1630,7 @@ passToSuper:
 				
 				NSUInteger aIndex=[shifted firstIndex];
 				while(aIndex != NSNotFound){
-					NSLog(@"%i >= %i ?", aIndex, [_visibleCells count]);
+//					NSLog(@"%i >= %i ?", aIndex, [_visibleCells count]);
 					if (aIndex >= [_visibleCells count]) {
 						[shifted removeIndex:aIndex];
 					}					
