@@ -126,12 +126,12 @@
 	}
 }
 
-- (void) moveItemAtIndex: (NSUInteger) index
+- (void) moveItemAtIndex: (NSUInteger) aIndex
 				 toIndex: (NSUInteger) newIndex
 		   withAnimation: (AQGridViewItemAnimation) animation
 {
 	NSMutableArray * array = [self updateItemArrayForAction: AQGridViewUpdateActionMove];
-	AQGridViewUpdateItem * item = [[AQGridViewUpdateItem alloc] initWithIndex: index
+	AQGridViewUpdateItem * item = [[AQGridViewUpdateItem alloc] initWithIndex: aIndex
 																	   action: AQGridViewUpdateActionMove
 																	animation: animation];
 	item.newIndex = newIndex;

@@ -81,13 +81,14 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 - (CGRect) fixCellFrame: (CGRect) cellFrame forGridRect: (CGRect) gridRect;
 - (void) updateVisibleGridCellsNow;
 //- (void) updateForwardCellsForVisibleIndices: (NSIndexSet *) newVisibleIndices;
-- (AQGridViewCell *) createPreparedCellForIndex: (NSUInteger) index;
+- (AQGridViewCell *) createPreparedCellForIndex: (NSUInteger) aIndex;
 - (void) insertVisibleCell: (AQGridViewCell *) cell atIndex: (NSUInteger) visibleCellListIndex;
 - (void) deleteVisibleCell: (AQGridViewCell *) cell atIndex: (NSUInteger) visibleCellListIndex appendingNewCell: (AQGridViewCell *) newLastCell;
 @end
 
 @interface AQGridView ()
 @property (nonatomic, copy) NSIndexSet * animatingIndices;
+- (void) cellUpdateAnimationStopped: (NSString *) animationID finished: (BOOL) finished context: (void *) context;
 @end
 
 
@@ -687,7 +688,7 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 	// update our content size as appropriate
 	self.contentSize = [_gridData sizeForEntireGrid];
 	
-    // fix up the visible index list
+    // fix up the visible aIndex list
     NSUInteger cutoff = MAX(0, _gridData.numberOfItems-_visibleIndices.length);
     _visibleIndices.location = MIN(_visibleIndices.location, cutoff);
 	_visibleIndices.length = 0;
@@ -780,23 +781,23 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 	}
 }
 
-- (CGRect) rectForItemAtIndex: (NSUInteger) index
+- (CGRect) rectForItemAtIndex: (NSUInteger) aIndex
 {
 	// simple case -- there's a cell already, we can just ask for its frame
-	if ( NSLocationInRange(index, _visibleIndices) )
-		return ( [[_visibleCells objectAtIndex: [self visibleCellListIndexForItemIndex: index]] frame] );
+	if ( NSLocationInRange(aIndex, _visibleIndices) )
+		return ( [[_visibleCells objectAtIndex: [self visibleCellListIndexForItemIndex: aIndex]] frame] );
 	
 	// complex case-- compute the frame manually
-	return ( [self fixCellFrame: CGRectZero forGridRect: [_gridData cellRectAtIndex: index]] );
+	return ( [self fixCellFrame: CGRectZero forGridRect: [_gridData cellRectAtIndex: aIndex]] );
 }
 
-- (AQGridViewCell *) cellForItemAtIndex: (NSUInteger) index
+- (AQGridViewCell *) cellForItemAtIndex: (NSUInteger) aIndex
 {
-	//if ( NSLocationInRange(index, _visibleIndices) == NO )
+	//if ( NSLocationInRange(aIndex, _visibleIndices) == NO )
 	//	return ( nil );
 	
 	// we don't clip to visible range-- when animating edits the visible cell list can contain extra items
-	NSUInteger visibleCellListIndex = [self visibleCellListIndexForItemIndex: index];
+	NSUInteger visibleCellListIndex = [self visibleCellListIndexForItemIndex: aIndex];
 	if ( visibleCellListIndex < [_visibleCells count] )
 		return ( [_visibleCells objectAtIndex: visibleCellListIndex] );
 	return ( nil );
@@ -809,11 +810,11 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 
 - (NSUInteger) indexForCell: (AQGridViewCell *) cell
 {
-	NSUInteger index = [_visibleCells indexOfObject:cell];
-	if (index == NSNotFound)
+	NSUInteger aIndex = [_visibleCells indexOfObject:cell];
+	if (aIndex == NSNotFound)
 		return NSNotFound;
 	
-	return _visibleIndices.location + index;
+	return _visibleIndices.location + aIndex;
 }
 
 - (AQGridViewCell *) cellForItemAtPoint: (CGPoint) point
@@ -831,10 +832,10 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 	return ( [NSIndexSet indexSetWithIndexesInRange: _visibleIndices] );
 }
 
-- (void) scrollToItemAtIndex: (NSUInteger) index atScrollPosition: (AQGridViewScrollPosition) scrollPosition
+- (void) scrollToItemAtIndex: (NSUInteger) aIndex atScrollPosition: (AQGridViewScrollPosition) scrollPosition
 					animated: (BOOL) animated
 {
-	CGRect gridRect = [_gridData cellRectAtIndex: index];
+	CGRect gridRect = [_gridData cellRectAtIndex: aIndex];
 	CGRect targetRect = self.bounds;
 	
 	switch ( scrollPosition )
@@ -1078,14 +1079,14 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 	[self _updateItemsAtIndices: indices updateAction: AQGridViewUpdateActionReload withAnimation: animation];
 }
 
-- (void) moveItemAtIndex: (NSUInteger) index toIndex: (NSUInteger) newIndex withAnimation: (AQGridViewItemAnimation) animation
+- (void) moveItemAtIndex: (NSUInteger) aIndex toIndex: (NSUInteger) newIndex withAnimation: (AQGridViewItemAnimation) animation
 {
 	BOOL needsAnimationSetup = ([_updateInfoStack count] <= _animationCount);
 	
 	if ( needsAnimationSetup )
 		[self setupUpdateAnimations];
 	
-	[[_updateInfoStack lastObject] moveItemAtIndex: index toIndex: newIndex withAnimation: animation];
+	[[_updateInfoStack lastObject] moveItemAtIndex: aIndex toIndex: newIndex withAnimation: animation];
 	
 	if ( needsAnimationSetup )
 		[self endUpdateAnimations];
@@ -1109,16 +1110,16 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 	return ( _selectedIndex );
 }
 
-- (void) highlightItemAtIndex: (NSUInteger) index animated: (BOOL) animated scrollPosition: (AQGridViewScrollPosition) position
+- (void) highlightItemAtIndex: (NSUInteger) aIndex animated: (BOOL) animated scrollPosition: (AQGridViewScrollPosition) position
 {
-	if ( [_highlightedIndices containsIndex: index] )
+	if ( [_highlightedIndices containsIndex: aIndex] )
 	{
 		if ( position != AQGridViewScrollPositionNone )
-			[self scrollToItemAtIndex: index atScrollPosition: position animated: animated];
+			[self scrollToItemAtIndex: aIndex atScrollPosition: position animated: animated];
 		return;
 	}
 	
-	if ( index == NSNotFound )
+	if ( aIndex == NSNotFound )
 	{
 		NSUInteger i = [_highlightedIndices firstIndex];
 		while ( i != NSNotFound )
@@ -1132,43 +1133,43 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 		return;
 	}
 	
-	AQGridViewCell * cell = [self cellForItemAtIndex: index];
+	AQGridViewCell * cell = [self cellForItemAtIndex: aIndex];
 	[cell setHighlighted: YES animated: animated];
-	[_highlightedIndices addIndex: index];
+	[_highlightedIndices addIndex: aIndex];
 	
 	if ( position != AQGridViewScrollPositionNone )
-		[self scrollToItemAtIndex: index atScrollPosition: position animated: animated];
+		[self scrollToItemAtIndex: aIndex atScrollPosition: position animated: animated];
 }
 
-- (void) unhighlightItemAtIndex: (NSUInteger) index animated: (BOOL) animated
+- (void) unhighlightItemAtIndex: (NSUInteger) aIndex animated: (BOOL) animated
 {
-	if ( [_highlightedIndices containsIndex: index] == NO )
+	if ( [_highlightedIndices containsIndex: aIndex] == NO )
 		return;
 	
-	[_highlightedIndices removeIndex: index];
+	[_highlightedIndices removeIndex: aIndex];
 	
 	// don't remove highlighting if the cell is actually the selected cell
-	if ( index == _selectedIndex )
+	if ( aIndex == _selectedIndex )
 		return;
 	
-	AQGridViewCell * cell = [self cellForItemAtIndex: index];
+	AQGridViewCell * cell = [self cellForItemAtIndex: aIndex];
 	if ( cell != nil )
 		[cell setHighlighted: NO animated: animated];
 }
 
-- (void) _deselectItemAtIndex: (NSUInteger) index animated: (BOOL) animated notifyDelegate: (BOOL) notifyDelegate
+- (void) _deselectItemAtIndex: (NSUInteger) aIndex animated: (BOOL) animated notifyDelegate: (BOOL) notifyDelegate
 {
-	if ( _selectedIndex != index )
+	if ( _selectedIndex != aIndex )
 		return;
 	
 	if ( notifyDelegate && _flags.delegateWillDeselectItem )
-		[self.delegate gridView: self willDeselectItemAtIndex: index];
+		[self.delegate gridView: self willDeselectItemAtIndex: aIndex];
 	
 	_selectedIndex = NSNotFound;
-	[[self cellForItemAtIndex: index] setSelected: NO animated: animated];
+	[[self cellForItemAtIndex: aIndex] setSelected: NO animated: animated];
 	
 	if ( notifyDelegate && _flags.delegateDidDeselectItem )
-		[self.delegate gridView: self didDeselectItemAtIndex: index];
+		[self.delegate gridView: self didDeselectItemAtIndex: aIndex];
 	
 	if ( notifyDelegate )
 	{
@@ -1177,11 +1178,11 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 	}
 }
 
-- (void) _selectItemAtIndex: (NSUInteger) index animated: (BOOL) animated
+- (void) _selectItemAtIndex: (NSUInteger) aIndex animated: (BOOL) animated
 			 scrollPosition: (AQGridViewScrollPosition) position notifyDelegate: (BOOL) notifyDelegate
        numFingersTouch: (NSUInteger) numFingers
 {
-	if ( _selectedIndex == index )
+	if ( _selectedIndex == aIndex )
 		return;		// already selected this item
 	
 	if ( _selectedIndex != NSNotFound )
@@ -1191,17 +1192,17 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 		return;
 	
 	if ( notifyDelegate && _flags.delegateWillSelectItem )
-		index = [self.delegate gridView: self willSelectItemAtIndex: index];
+		aIndex = [self.delegate gridView: self willSelectItemAtIndex: aIndex];
   
   if ( notifyDelegate && _flags.delegateWillSelectItemMultiTouch )
-		index = [self.delegate gridView: self willSelectItemAtIndex: index
+		aIndex = [self.delegate gridView: self willSelectItemAtIndex: aIndex
                     numFingersTouch:numFingers];
   
-	_selectedIndex = index;
-	[[self cellForItemAtIndex: index] setSelected: YES animated: animated];
+	_selectedIndex = aIndex;
+	[[self cellForItemAtIndex: aIndex] setSelected: YES animated: animated];
 	
 	if ( position != AQGridViewScrollPositionNone )
-		[self scrollToItemAtIndex: index atScrollPosition: position animated: animated];
+		[self scrollToItemAtIndex: aIndex atScrollPosition: position animated: animated];
 	
 	if ( notifyDelegate )
 	{
@@ -1210,25 +1211,25 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 	}
 	
 	if ( notifyDelegate && _flags.delegateDidSelectItem )
-		[self.delegate gridView: self didSelectItemAtIndex: index];
+		[self.delegate gridView: self didSelectItemAtIndex: aIndex];
   
   if ( notifyDelegate && _flags.delegateDidSelectItemMultiTouch )
-		[self.delegate gridView: self didSelectItemAtIndex: index numFingersTouch:numFingers];
+		[self.delegate gridView: self didSelectItemAtIndex: aIndex numFingersTouch:numFingers];
 	
 	// ensure that the selected item is no longer marked as just 'highlighted' (that's an intermediary state)
-	[_highlightedIndices removeIndex: index];
+	[_highlightedIndices removeIndex: aIndex];
 }
 
-- (void) selectItemAtIndex: (NSUInteger) index animated: (BOOL) animated
+- (void) selectItemAtIndex: (NSUInteger) aIndex animated: (BOOL) animated
 			scrollPosition: (AQGridViewScrollPosition) scrollPosition
 {
-	[self _selectItemAtIndex: index animated: animated scrollPosition: scrollPosition notifyDelegate: NO
+	[self _selectItemAtIndex: aIndex animated: animated scrollPosition: scrollPosition notifyDelegate: NO
            numFingersTouch: 1];
 }
 
-- (void) deselectItemAtIndex: (NSUInteger) index animated: (BOOL) animated
+- (void) deselectItemAtIndex: (NSUInteger) aIndex animated: (BOOL) animated
 {
-	[self _deselectItemAtIndex: index animated: animated notifyDelegate: NO];
+	[self _deselectItemAtIndex: aIndex animated: animated notifyDelegate: NO];
 }
 
 #pragma mark -
@@ -1343,13 +1344,13 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 
 - (void) _userSelectItemAtIndex: (UserSelectItemIndexParams*) params
 {
-	NSUInteger index = params.indexNum;
+	NSUInteger aIndex = params.indexNum;
   NSUInteger numFingersCount = params.numFingers;
-	[self unhighlightItemAtIndex: index animated: NO];
-	if ( ([[self cellForItemAtIndex: index] isSelected]) && (self.requiresSelection == NO) )
-		[self _deselectItemAtIndex: index animated: NO notifyDelegate: YES];
+	[self unhighlightItemAtIndex: aIndex animated: NO];
+	if ( ([[self cellForItemAtIndex: aIndex] isSelected]) && (self.requiresSelection == NO) )
+		[self _deselectItemAtIndex: aIndex animated: NO notifyDelegate: YES];
 	else
-		[self _selectItemAtIndex: index animated: NO scrollPosition: AQGridViewScrollPositionNone notifyDelegate: YES
+		[self _selectItemAtIndex: aIndex animated: NO scrollPosition: AQGridViewScrollPositionNone notifyDelegate: YES
              numFingersTouch: numFingersCount];
 	_pendingSelectionIndex = NSNotFound;
 }
@@ -1409,17 +1410,17 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 		
 		if ( [self _canSelectItemContainingHitView: hitView] )
 		{
-			NSUInteger index = [self indexForItemAtPoint: pt];
-			if ( index != NSNotFound )
+			NSUInteger aIndex = [self indexForItemAtPoint: pt];
+			if ( aIndex != NSNotFound )
 			{
 				if ( _flags.allowsSelection == 1 )
 				{
-					_pendingSelectionIndex = index;
+					_pendingSelectionIndex = aIndex;
 					
 					// NB: In UITableView:
 					// if ( [self usesGestureRecognizers] && [self isDragging] ) skip next line
 					[self performSelector: @selector(_gridViewDeferredTouchesBegan:)
-							   withObject: [NSNumber numberWithUnsignedInteger: index]
+							   withObject: [NSNumber numberWithUnsignedInteger: aIndex]
 							   afterDelay: 0.0];
 				}
 			}
@@ -1596,18 +1597,18 @@ passToSuper:
 	@try
 	{
 		// a couple of simple tests
-		// TODO: if we replace _visibleIndices with an index set, this comparison will have to change
+		// TODO: if we replace _visibleIndices with an aIndex set, this comparison will have to change
 		if ( ([_visibleCells count] != [newVisibleIndices count]) ||
 			([newVisibleIndices countOfIndexesInRange: _visibleIndices] != _visibleIndices.length) )
 		{
 			// something has changed. Compute intersections and remove/add cells as required
 			NSIndexSet * currentVisibleIndices = [NSIndexSet indexSetWithIndexesInRange: _visibleIndices];
 			
-			// index sets for removed and inserted items
+			// aIndex sets for removed and inserted items
 			NSMutableIndexSet * removedIndices = nil, * insertedIndices = nil;
 			
 			// handle the simple case first
-			// TODO: if we replace _visibleIndices with an index set, this comparison will have to change
+			// TODO: if we replace _visibleIndices with an aIndex set, this comparison will have to change
 			if ( [currentVisibleIndices intersectsIndexesInRange: _visibleIndices] == NO )
 			{
 				removedIndices = [[currentVisibleIndices mutableCopy] autorelease];
@@ -1623,17 +1624,17 @@ passToSuper:
 			{
 				NSMutableIndexSet * shifted = [removedIndices mutableCopy];
 				
-				// get an index set for everything being removed relative to items' locations within the visible cell list
+				// get an aIndex set for everything being removed relative to items' locations within the visible cell list
 				[shifted shiftIndexesStartingAtIndex: [removedIndices firstIndex] by: 0 - (NSInteger)_visibleIndices.location];
 				//NSLog( @"Removed indices relative to visible cell list: %@", shifted );
 				
-				NSUInteger index=[shifted firstIndex];
-				while(index != NSNotFound){
-					NSLog(@"%i >= %i ?", index, [_visibleCells count]);
-					if (index >= [_visibleCells count]) {
-						[shifted removeIndex:index];
+				NSUInteger aIndex=[shifted firstIndex];
+				while(aIndex != NSNotFound){
+					NSLog(@"%i >= %i ?", aIndex, [_visibleCells count]);
+					if (aIndex >= [_visibleCells count]) {
+						[shifted removeIndex:aIndex];
 					}					
-					index=[shifted indexGreaterThanIndex: index];
+					aIndex=[shifted indexGreaterThanIndex: aIndex];
 				}
 				
 				// pull out the cells for manipulation
@@ -1662,7 +1663,7 @@ passToSuper:
 			
 			if ( [insertedIndices count] != 0 )
 			{
-				// some items are going in -- put them at the end and the sort function will move them to the right index during layout
+				// some items are going in -- put them at the end and the sort function will move them to the right aIndex during layout
 				// if any of these new indices correspond to animating cells (NOT UIImageViews) then copy them into the visible cell list
 				NSMutableIndexSet * animatingInserted = [insertedIndices mutableCopy];
 				
@@ -1742,13 +1743,13 @@ passToSuper:
 					if ( [newVisibleIndices containsIndex: cell.displayIndex] == NO &&
                          [animatingDestinationIndices containsIndex: cell.displayIndex] == NO )
 					{
-						NSLog( @"Cell for index %lu is still in visible list, removing...", (unsigned long)cell.displayIndex );
+						NSLog( @"Cell for aIndex %lu is still in visible list, removing...", (unsigned long)cell.displayIndex );
 						[cell removeFromSuperview];
 						[toRemove addIndex: i];
 					}
 					else if ( [seen containsIndex: cell.displayIndex] )
 					{
-						NSLog( @"Multiple cells with index %lu found-- removing duplicate...", (unsigned long)cell.displayIndex );
+						NSLog( @"Multiple cells with aIndex %lu found-- removing duplicate...", (unsigned long)cell.displayIndex );
 						[cell removeFromSuperview];
 						[toRemove addIndex: i];
 					}
@@ -1830,7 +1831,7 @@ passToSuper:
 	@try
 	{
 		// a couple of simple tests
-		// TODO: if we replace _visibleIndices with an index set, this comparison will have to change
+		// TODO: if we replace _visibleIndices with an aIndex set, this comparison will have to change
 		if ( ([_visibleCells count] != [newVisibleIndices count]) ||
 			([newVisibleIndices countOfIndexesInRange: _visibleIndices] != _visibleIndices.length) )
 		{
@@ -1839,11 +1840,11 @@ passToSuper:
 			// something has changed. Compute intersections and remove/add cells as required
 			NSIndexSet * currentVisibleIndices = [NSIndexSet indexSetWithIndexesInRange: _visibleIndices];
 			
-			// index sets for removed and inserted items
+			// aIndex sets for removed and inserted items
 			NSIndexSet * removedIndices = nil, * insertedIndices = nil;
 			
 			// handle the simple case first
-			// TODO: if we replace _visibleIndices with an index set, this comparison will have to change
+			// TODO: if we replace _visibleIndices with an aIndex set, this comparison will have to change
 			if ( [currentVisibleIndices intersectsIndexesInRange: _visibleIndices] == NO )
 			{
 				removedIndices = currentVisibleIndices;
@@ -1864,7 +1865,7 @@ passToSuper:
 				{
 					NSMutableIndexSet * shifted = [removedIndices mutableCopy];
 					
-					// get an index set for everything being removed relative to items' locations within the visible cell list
+					// get an aIndex set for everything being removed relative to items' locations within the visible cell list
 					[shifted shiftIndexesStartingAtIndex: [removedIndices firstIndex] by: 0 - (NSInteger)_visibleIndices.location];
 					//NSLog( @"Removed indices relative to visible cell list: %@", shifted );
 					
@@ -1899,7 +1900,7 @@ passToSuper:
 				{
 					// now we do the insertions
 					NSUInteger first = [newVisibleIndices firstIndex];
-					NSLog( @"New starting index = %lu", (unsigned long)first );
+					NSLog( @"New starting aIndex = %lu", (unsigned long)first );
 					NSLog( @"Visible cell count = %lu", (unsigned long)[_visibleCells count] );
 					
 					// if there are cells being animated into place, skip them-- the animation has them already
@@ -1909,7 +1910,7 @@ passToSuper:
 						for ( AQGridViewAnimatorItem * item in self.animatingCells )
 						{
 							// remove each animating item from the list we'll insert
-							[tmp removeIndex: item.index];
+							[tmp removeIndex: item.aIndex];
 						}
 						
 						insertedIndices = [[tmp copy] autorelease];
@@ -1922,17 +1923,17 @@ passToSuper:
 						AQGridViewCell * cell = [self createPreparedCellForIndex: idx];
 						[self delegateWillDisplayCell: cell atIndex: idx];
 						
-						NSLog( @"Inserting cell for index %lu at visible list index %lu", (unsigned long)idx, (unsigned long)(idx - first) );
+						NSLog( @"Inserting cell for aIndex %lu at visible list aIndex %lu", (unsigned long)idx, (unsigned long)(idx - first) );
 						[_visibleCells insertObject: cell atIndex: idx-first];
 						
 						idx = [insertedIndices indexGreaterThanIndex: idx];
 					}
 				}
 				
-				// sort the visible cell list so everything is in global-index order
+				// sort the visible cell list so everything is in global-aIndex order
 				[self sortVisibleCellList];
 				
-				// remove anything from _visibleCells whose index isn't in the visible range
+				// remove anything from _visibleCells whose aIndex isn't in the visible range
 				NSMutableIndexSet * removeVisibleCells = [[NSMutableIndexSet alloc] init];
 				NSUInteger i = 0;
 				for ( AQGridViewCell * cell in _visibleCells )
@@ -2033,7 +2034,7 @@ passToSuper:
 			// remove from the visible list
 			[_visibleCells removeObjectsInRange: arrayRange];
 			
-			// trim the visible cell index range
+			// trim the visible cell aIndex range
 			_visibleIndices.length -= numToRemove;
 			
 			if ( removeFromFront )
@@ -2093,7 +2094,7 @@ passToSuper:
 		[newIndices removeIndexesInRange: _visibleIndices];
 		[newIndices removeIndexesInRange: _revealingIndices];
 		
-		// insert any new cells, in reverse order (so we always insert at index zero)
+		// insert any new cells, in reverse order (so we always insert at aIndex zero)
 		NSUInteger idx = [newIndices lastIndex];
 		while ( idx != NSNotFound )
 		{
@@ -2104,7 +2105,7 @@ passToSuper:
 			idx = [newIndices indexLessThanIndex: idx];
 		}
 		
-		// update the visibleCell index range
+		// update the visibleCell aIndex range
 		_visibleIndices.length += [newIndices count];
 		_visibleIndices.location = [newVisibleIndices firstIndex];
 		
@@ -2180,15 +2181,15 @@ passToSuper:
 	return ( cellFrame );
 }
 
-- (AQGridViewCell *) createPreparedCellForIndex: (NSUInteger) index usingGridData: (AQGridViewData *) gridData
+- (AQGridViewCell *) createPreparedCellForIndex: (NSUInteger) aIndex usingGridData: (AQGridViewData *) gridData
 {
 	[UIView setAnimationsEnabled: NO];
-	AQGridViewCell * cell = [_dataSource gridView: self cellForItemAtIndex: index];
+	AQGridViewCell * cell = [_dataSource gridView: self cellForItemAtIndex: aIndex];
 	cell.separatorStyle = _flags.separatorStyle;
 	cell.editing = self.editing;
-	cell.displayIndex = index;
+	cell.displayIndex = aIndex;
 	
-	cell.frame = [self fixCellFrame: cell.frame forGridRect: [gridData cellRectAtIndex: index]];
+	cell.frame = [self fixCellFrame: cell.frame forGridRect: [gridData cellRectAtIndex: aIndex]];
 	if ( _backgroundView.superview == self )
 		[self insertSubview: cell aboveSubview: _backgroundView];
 	else
@@ -2198,9 +2199,9 @@ passToSuper:
 	return ( cell );
 }
 
-- (AQGridViewCell *) createPreparedCellForIndex: (NSUInteger) index
+- (AQGridViewCell *) createPreparedCellForIndex: (NSUInteger) aIndex
 {
-    return ( [self createPreparedCellForIndex: index usingGridData: _gridData] );
+    return ( [self createPreparedCellForIndex: aIndex usingGridData: _gridData] );
 }
 
 - (void) insertVisibleCell: (AQGridViewCell *) cell atIndex: (NSUInteger) visibleCellListIndex
@@ -2255,17 +2256,17 @@ passToSuper:
 
 @implementation AQGridView (CellLocationDelegation)
 
-- (void) delegateWillDisplayCell: (AQGridViewCell *) cell atIndex: (NSUInteger) index
+- (void) delegateWillDisplayCell: (AQGridViewCell *) cell atIndex: (NSUInteger) aIndex
 {
 	if ( cell.separatorStyle == AQGridViewCellSeparatorStyleSingleLine )
 	{
 		// determine which edges need a separator
 		AQGridViewCellSeparatorEdge edge = 0;
-		if ( (index % self.numberOfColumns) != self.numberOfColumns-1 )
+		if ( (aIndex % self.numberOfColumns) != self.numberOfColumns-1 )
 		{
 			edge |= AQGridViewCellSeparatorEdgeRight;
 		}
-		//if ( index <= (_gridData.numberOfItems - self.numberOfColumns) )
+		//if ( aIndex <= (_gridData.numberOfItems - self.numberOfColumns) )
 		{
 			edge |= AQGridViewCellSeparatorEdgeBottom;
 		}
@@ -2273,12 +2274,12 @@ passToSuper:
 		cell.separatorEdge = edge;
 	}
     
-    //NSLog( @"Displaying cell at index %lu", (unsigned long) index );
+    //NSLog( @"Displaying cell at aIndex %lu", (unsigned long) aIndex );
 	
 	if ( _flags.delegateWillDisplayCell == 0 )
 		return;
 	
-	[self.delegate gridView: self willDisplayCell: cell forItemAtIndex: index];
+	[self.delegate gridView: self willDisplayCell: cell forItemAtIndex: aIndex];
 }
 
 @end

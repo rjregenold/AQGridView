@@ -47,6 +47,7 @@
 @interface AQGridViewCell ()
 @property (nonatomic, retain) UIView * contentView;
 @property (nonatomic, copy) NSString * reuseIdentifier;
+- (void) flipHighlightTimerFired: (NSTimer *) timer;
 @end
 
 @implementation AQGridViewCell
@@ -700,9 +701,9 @@
 	return ( _displayIndex );
 }
 
-- (void) setDisplayIndex: (NSUInteger) index
+- (void) setDisplayIndex: (NSUInteger) aIndex
 {
-	_displayIndex = index;
+	_displayIndex = aIndex;
 }
 
 - (BOOL) hiddenForAnimation

@@ -109,6 +109,8 @@ typedef enum {
 @property (nonatomic, retain) UIColor * selectionGlowColor;				// default is dark grey, ignored if selectionStyle != AQGridViewCellSelectionStyleGlow
 @property (nonatomic) CGFloat selectionGlowShadowRadius;				// default is 12.0, ignored if selectionStyle != AQGridViewCellSelectionStyleGlow
 
+- (NSComparisonResult) compareOriginAgainstCell: (AQGridViewCell *) otherCell;
+
 // this can be overridden by subclasses to return a subview's layer to which to add the glow
 // the default implementation returns the contentView's layer
 @property (nonatomic, readonly) CALayer * glowSelectionLayer;

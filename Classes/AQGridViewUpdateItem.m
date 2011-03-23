@@ -40,13 +40,13 @@
 
 @synthesize originalIndex=_index, newIndex=_newIndex, action=_action, animation=_animation, offset=_offset;
 
-- (id) initWithIndex: (NSUInteger) index action: (AQGridViewUpdateAction) action animation: (AQGridViewItemAnimation) animation
+- (id) initWithIndex: (NSUInteger) aIndex action: (AQGridViewUpdateAction) action animation: (AQGridViewItemAnimation) animation
 {
 	self = [super init];
 	if ( self == nil )
 		return ( nil );
 	
-	_index = index;
+	_index = aIndex;
 	_action = action;
 	_animation = animation;
 	

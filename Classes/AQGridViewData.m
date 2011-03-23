@@ -185,13 +185,13 @@
 	return ( cols );	
 }
 
-- (CGRect) cellRectAtIndex: (NSUInteger) index
+- (CGRect) cellRectAtIndex: (NSUInteger) aIndex
 {
 	NSUInteger numPerRow = [self numberOfItemsPerRow];
     if ( numPerRow == 0 )       // avoid a divide-by-zero exception
         return ( CGRectZero );
-	NSUInteger skipRows = index / numPerRow;
-	NSUInteger skipCols = index % numPerRow;
+	NSUInteger skipRows = aIndex / numPerRow;
+	NSUInteger skipCols = aIndex % numPerRow;
 	
 	CGRect result = CGRectZero;
 	result.origin.x = _actualCellSize.width * (CGFloat)skipCols + _leftPadding;

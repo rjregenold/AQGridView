@@ -165,7 +165,7 @@
 }
 
 
-- (AQGridViewCell *) gridView: (AQGridView *) gridView cellForItemAtIndex: (NSUInteger) index
+- (AQGridViewCell *) gridView: (AQGridView *) gridView cellForItemAtIndex: (NSUInteger) aIndex
 {
 	return ( nil );
 }
