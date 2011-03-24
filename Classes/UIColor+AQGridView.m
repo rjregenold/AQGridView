@@ -40,7 +40,8 @@
 
 + (UIColor *) AQDefaultGridCellSeparatorColor
 {
-    return ( [UIColor colorWithWhite: 221.0/255.0 alpha: 1.0] );
+//    return ( [UIColor colorWithWhite: 221.0/255.0 alpha: 1.0] );
+    return [UIColor blackColor];
 }
 
 @end
