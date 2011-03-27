@@ -579,11 +579,14 @@ NSString * const AQGridViewSelectionDidChangeNotification = @"AQGridViewSelectio
 	    if (newSize.height < minimumHeight)
 	        newSize.height = minimumHeight;
 	}
-	
-    if(self.layoutDirection == AQGridViewLayoutDirectionHorizontal)
-        newSize.height = fmax(newSize.height, self.frame.size.height);
-    else
-        newSize.height = fmax(newSize.height, self.frame.size.height+1);
+
+//    hack to fix scroll.
+//    if(self.layoutDirection == AQGridViewLayoutDirectionHorizontal)
+//        newSize.height = fmax(newSize.height, self.frame.size.height);
+//    else
+//        newSize.height = fmax(newSize.height, self.frame.size.height+1);
+    
+    newSize.height = fmax(newSize.height, self.frame.size.height);    
 	
 	CGSize oldSize = self.contentSize;
 	[super setContentSize: newSize];
