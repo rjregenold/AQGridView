@@ -2162,6 +2162,7 @@ passToSuper:
 	
 	NSRange range = NSMakeRange(0, _visibleIndices.length);
 	[self layoutCellsInVisibleCellRange: range];
+    [[NSNotificationCenter defaultCenter] postNotificationName:AQLAYOUT_COMPLETE object:self];
 }
 
 - (CGRect) fixCellFrame: (CGRect) cellFrame forGridRect: (CGRect) gridRect

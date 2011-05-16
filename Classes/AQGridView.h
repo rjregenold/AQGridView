@@ -37,6 +37,8 @@
 #import <UIKit/UIKit.h>
 #import "AQGridViewCell.h"
 
+static NSString * const AQLAYOUT_COMPLETE = @"AQGridView.Note.LayoutComplete";
+
 typedef enum {
 	AQGridViewScrollPositionNone,
 	AQGridViewScrollPositionTop,
